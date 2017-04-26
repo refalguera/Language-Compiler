@@ -1,4 +1,4 @@
-ar Tokens = {
+var Tokens = {
     itens: [],
 
     addNumero: function(parametro,linha,coluna){
@@ -49,3 +49,5 @@ ar Tokens = {
 };
 
 module.exports = Tokens;
+
+   

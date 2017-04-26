@@ -31,3 +31,6 @@ var Tabela = {
 			return identificadores.length - 1;		  		//Retorna a ID gerada
 		}
 }
+
+
+module.exports = Tabela;

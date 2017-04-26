@@ -12,13 +12,13 @@ var Tabela = {
 				"DO","IMPLEMENTATION","OR","THEN","XOR"],
 	//Existem 50 palavras reservadas colocadas na inicialização de "identificadores"
 	
-	//Retorna se é palavra reservada do Pascal (Retorna 1 caso seja, se não, retorna 0)
+	//Retorna se é palavra reservada do Pascal (Retorna true caso seja, se não, retorna false)
 	ehPascal: function(nomeIdentificador) {
 			var ehp = identificadores.indexOf(nomeIdentificador);
 			if (ehp == -1 || ehp >=50) 
-				return 0; 
+				return false; 
 				//Se -1 não foi adicionado a tabela ainda, se for maior que 50, o indice se refere a um identificador criado durante execução
-			return 1; 
+			return true; 
 			//Valores entre com indice entre 0 e 49 se referem as palavras reservadas já definidas
 		},
 

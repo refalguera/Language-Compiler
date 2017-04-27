@@ -1,33 +1,77 @@
-var Tabela = {
-	//Palavras reservadas e identificadores
-	identificadores: ["AND","DOWNTO","IN","PACKED","TO",
-				"ARRAY","ELSE","INLINE","PROCEDURE","TYPE",
-				"ASM","END","INTERFACE","PROGRAM","UNIT",
-				"BEGIN","FILE","LABEL","RECORD","UNTIL",
-				"CASE","FOR","MOD","REPEAT","UNTIL",
-				"CONST","FOWARD","NIL","SET","USES",
-				"CONSTRUCTOR","FUNCTION","NOT","SHL","VAR",
-				"DESTRUCTOR","GOTO","OBJECT","SHR","WHILE",
-				"DIV","IF","OF","STRING","WITH",
-				"DO","IMPLEMENTATION","OR","THEN","XOR"],
-	//Existem 50 palavras reservadas colocadas na inicialização de "identificadores"
-	
-	//Retorna se é palavra reservada do Pascal (Retorna true caso seja, se não, retorna false)
-	ehPascal: function(nomeIdentificador) {
-			var ehp = this.identificadores.indexOf(nomeIdentificador);
-			if (ehp == -1 || ehp >=50) 
-				return false; 
-				//Se -1 não foi adicionado a tabela ainda, se for maior que 50, o indice se refere a um identificador criado durante execução
-			return true; 
-			//Valores entre com indice entre 0 e 49 se referem as palavras reservadas já definidas
-		},
+var fs = require('fs');
 
-	//Retorna a ID correspondente a um identificador e caso não haja um o mesmo é criado e retornado
-	pegarId: function(nomeIdentificador) {
-			nomeIdentificador = nomeIdentificador.toUpperCase();
-			var i = this.identificadores.indexOf(nomeIdentificador);
-			if (i != -1) return i;  					         	//Retorna a ID
-			this.identificadores.push(nomeIdentificador);		//Adiciona o identificador
-			return this.identificadores.length - 1;		  		//Retorna a ID gerada
-		}
+
+var Leitor = {
+    linha: 0,
+    coluna: 0,
+    posicao: 0,
+    texto: '',
+
+    ler: function(nomeArquivo) {
+        // le o arquivo para uma string, usando a o formato utf8 (para aceitar
+        // caracteres especiais
+        this.texto = fs.readFileSync(nomeArquivo, 'utf8');
+    },
+
+    proximo: function() {
+        // carega o caracter na posição atual, e incrementa a posição lida
+        var caracter = this.texto.charAt(this.posicao++);
+
+        // atualiza o numero da linha e coluna atual
+        if (caracter == '\n') {
+            this.linha++;
+            this.coluna = 0;
+        } else {
+            this.coluna++;
+        }
+
+        return caracter;
+    },
+
+    proximoComRegex: function(regex) {
+        // le um conjunto de caracteres que da é aceito pela expressão regular
+        // passada em regex.
+        // carrega uma copia da string comecando no ponteiro atual
+        var sub = this.texto.substring(--this.posicao);
+        var resultado = regex.exec(sub);
+
+        if (resultado === null) {
+            resultado = '';
+        } else {
+            resultado = resultado[0]; //pega o primeiro item do resultado,
+            // que é o valor encontrado
+        }
+
+        // atualiza a linha e coluna
+        for (var i = 0; i < resultado.length; i++) {
+            var caracter = resultado[i];
+            if (caracter == '\n') {
+                this.linha++;
+                this.coluna = 0;
+            } else {
+                this.coluna++;
+            }
+        }
+
+        this.posicao += resultado.length;
+
+        return resultado;
+    },
+
+    getChar: function() {
+        // retorna o texto na posicao atual
+        return this.texto[this.posicao];
+    },
+
+    fimDoArquivo: function() {
+        // verifica se chegou no fim do arquivo
+        // em js, o fim da string retorna como "", uma string vazia
+        return !this.getChar();
+    },
+
+    erro: function(msg) {
+        erroSai(msg + ' (' + this.linha + ':' + this.coluna + ')');
+    }
 }
+
+module.exports = Leitor;

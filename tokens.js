@@ -28,10 +28,11 @@ var Tokens = {
         this.itens.push(token);
     },
 
-    addIdentificador:function(id,linha,coluna){
+    addIdentificador:function(parametro,id,linha,coluna){
         var token = {};
         token.tipo = "id";
-        token.valor = id;
+        token.valor = parametro;
+        token.id = id;
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);

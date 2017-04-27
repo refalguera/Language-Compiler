@@ -1,7 +1,7 @@
 var fs = require('fs');
 var Leitor = require('./leitor.js');
 var Tokens = require('./tokens.js');
-//var Tabela = require('./tabela.js');
+var Tabela = require('./tabela.js');
 
 var debug = true; // se true, mostra msgs de debug na tela
 
@@ -33,6 +33,8 @@ var AnalisadorLexico = {
         } while (' \t\n'.indexOf(charAtual) !== -1);
         // testa se é comentário, em pascal, comentário começa com { e termina
         // com }
+        var linha = Leitor.linha;
+        var coluna = Leitor.coluna;
         if (charAtual === '{') {
             this.lerComentario();
             debug && console.log('comentario');
@@ -44,7 +46,7 @@ var AnalisadorLexico = {
             var numero = this.lerNumero();
             if (numero != null) {
                 debug && console.log('numero -> ' + numero);
-                Tokens.addNumero(parseFloat(numero));
+                Tokens.addNumero(parseFloat(numero), linha, numero);
                 return;
             }
         }
@@ -53,7 +55,7 @@ var AnalisadorLexico = {
             var string = this.lerString();
             if (string != null) {
                 debug && console.log('string -> ' + string);
-                Tokens.addString(string);
+                Tokens.addString(string, linha, coluna);
                 return;
             }
         } 
@@ -64,18 +66,18 @@ var AnalisadorLexico = {
             
             if (pontuacao != '') {
                 debug && console.log('pontuação -> ' + pontuacao);
-                Tokens.addPontuacao(pontuacao);
+                Tokens.addPontuacao(pontuacao, linha, coluna);
                 return;
             }
         }
         
-        // testa se é uma pontuação, ( ) ; , : := =
+        // testa se é uma operacao, ( ) ; , : := =
         if (/[\+\-\/\*\=\>\<&|!~]/ig.test(charAtual)) {
-            // testa se é um operador: +, -, *, /, div ou  mod
+            // testa se é um operador: +, -, *, /, :=, =
             var operador = this.lerOperador();
             if (operador != null) {
                 debug && console.log('operador -> ' + operador);
-                Tokens.addOperador(operador);
+                Tokens.addOperador(operador, linha, coluna);
                 return;
             }
         }
@@ -84,17 +86,16 @@ var AnalisadorLexico = {
         if (/[a-z]/ig.test(charAtual)) {
             var identificador = this.lerIdentificador();
             if (identificador != null) {
-                //var id = Tabela.pegarId(identificador);
-                var id = '0';
+                var id = Tabela.pegarId(identificador);
                 debug && console.log('identificador -> ' + identificador + " | " + id);
-                Tokens.addIdentificador(identificador);
+                Tokens.addIdentificador(identificador, id, linha, coluna);
                 return;
             }
         }
 
         // se chegou até aqui, n passou por nenhum return, logo é algo que não
         // pode ser identificado, gerar erro.
-        
+
         Leitor.erro('Caracter inválido: ' + charAtual + ', verifique seu código. !');
     },
 

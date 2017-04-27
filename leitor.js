@@ -70,7 +70,8 @@ var Leitor = {
     },
 
     erro: function(msg) {
-        erroSai(msg + ' (' + this.linha + ':' + this.coluna + ')');
+        console.error(msg + ' (' + this.linha + ':' + this.coluna + ')');
+        process.exit(-1);
     }
 }
 

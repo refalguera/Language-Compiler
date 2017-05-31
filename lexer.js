@@ -138,19 +138,22 @@ var AnalisadorLexico = {
     }
 }
 
+if (!module.parent) {
+    const args = process.argv; // pega os argumentos passado pela linha de comando
 
-const args = process.argv; // pega os argumentos passado pela linha de comando
+    if (args.length != 3) {
+        erroSai('Número de parâmetros incorreto! Use node lexer.js NOME_DO_ARQUIVO.pas');
+    }
 
-if (args.length != 3) {
-    erroSai('Número de parâmetros incorreto! Use node lexer.js NOME_DO_ARQUIVO.pas');
+    const nomeArquivo = args[2]; // pega o nome do arquivo enviado pelo parâmetro da linha de comando
+
+    if (!fs.existsSync(nomeArquivo)) {
+        erroSai('Erro: arquivo não encontrado (' + nomeArquivo + ')');
+    }
+
+    Leitor.ler(nomeArquivo);
+    AnalisadorLexico.processar();
+    console.log(Tokens.itens);
+} else {
+    module.exports = AnalisadorLexico;
 }
-
-const nomeArquivo = args[2]; // pega o nome do arquivo enviado pelo parâmetro da linha de comando
-
-if (!fs.existsSync(nomeArquivo)) {
-    erroSai('Erro: arquivo não encontrado (' + nomeArquivo + ')');
-}
-
-Leitor.ler(nomeArquivo);
-AnalisadorLexico.processar();
-console.log(Tokens.itens);

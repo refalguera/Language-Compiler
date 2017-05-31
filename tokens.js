@@ -8,6 +8,7 @@ var Tokens = {
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);
+        return token;
     },
 
     addString:function(parametro,linha,coluna){
@@ -17,6 +18,7 @@ var Tokens = {
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);
+        return token;
     },
 
     addOperador:function(parametro,linha,coluna){
@@ -26,6 +28,7 @@ var Tokens = {
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);
+        return token;
     },
 
     addIdentificador:function(parametro,id,linha,coluna){
@@ -36,6 +39,7 @@ var Tokens = {
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);
+        return token;
     },
 
     addPontuacao:function(parametro,linha,coluna){
@@ -45,10 +49,9 @@ var Tokens = {
         token.linha = linha;
         token.coluna = coluna;
         this.itens.push(token);
+        return token;
     }
 
 };
 
 module.exports = Tokens;
-
-   

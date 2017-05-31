@@ -38,7 +38,6 @@ var AnalisadorLexico = {
         if (charAtual === '{') {
             this.lerComentario();
             debug && console.log('comentario');
-            return;
         }
         
         if (/[0-9]/i.test(charAtual)) { // testa se é numero
@@ -46,8 +45,7 @@ var AnalisadorLexico = {
             var numero = this.lerNumero();
             if (numero != null) {
                 debug && console.log('numero -> ' + numero);
-                Tokens.addNumero(parseFloat(numero), linha, numero);
-                return;
+                return Tokens.addNumero(parseFloat(numero), linha, numero);
             }
         }
         
@@ -55,8 +53,7 @@ var AnalisadorLexico = {
             var string = this.lerString();
             if (string != null) {
                 debug && console.log('string -> ' + string);
-                Tokens.addString(string, linha, coluna);
-                return;
+                return Tokens.addString(string, linha, coluna);
             }
         } 
         
@@ -66,8 +63,7 @@ var AnalisadorLexico = {
             
             if (pontuacao != '') {
                 debug && console.log('pontuação -> ' + pontuacao);
-                Tokens.addPontuacao(pontuacao, linha, coluna);
-                return;
+                return Tokens.addPontuacao(pontuacao, linha, coluna);
             }
         }
         
@@ -77,8 +73,7 @@ var AnalisadorLexico = {
             var operador = this.lerOperador();
             if (operador != null) {
                 debug && console.log('operador -> ' + operador);
-                Tokens.addOperador(operador, linha, coluna);
-                return;
+                return Tokens.addOperador(operador, linha, coluna);
             }
         }
         
@@ -88,8 +83,7 @@ var AnalisadorLexico = {
             if (identificador != null) {
                 var id = Tabela.pegarId(identificador);
                 debug && console.log('identificador -> ' + identificador + " | " + id);
-                Tokens.addIdentificador(identificador, id, linha, coluna);
-                return;
+                return Tokens.addIdentificador(identificador, id, linha, coluna);
             }
         }
 
@@ -110,7 +104,7 @@ var AnalisadorLexico = {
     },
 
     lerNumero: function() {
-        var regex = /[0-9]+[.]*[0-9]*/gi; // regex para identificar numero
+        var regex = /[0-9]{1,16}[.]?[0-9]{1,16}/gi; // regex para identificar numero
         return Leitor.proximoComRegex(regex);
     },
 

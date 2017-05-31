@@ -37,7 +37,14 @@ var AnalisadorLexico = {
         var coluna = Leitor.coluna;
         if (charAtual === '{') {
             this.lerComentario();
-            debug && console.log('comentario');
+            do {
+                charAtual = Leitor.proximo();
+                // testa se acabou de ler o arquivo
+                if (Leitor.fimDoArquivo()) {
+                    return null;
+                }
+            } while (' \t\n'.indexOf(charAtual) !== -1);
+            debug && console.log('comentário');
         }
         
         if (/[0-9]/i.test(charAtual)) { // testa se é numero
@@ -52,6 +59,7 @@ var AnalisadorLexico = {
         if (charAtual == '\'') { // testa se é string
             var string = this.lerString();
             if (string != null) {
+                string = string.substring(1, string.length - 1);
                 debug && console.log('string -> ' + string);
                 return Tokens.addString(string, linha, coluna);
             }

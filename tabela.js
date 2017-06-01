@@ -1,4 +1,6 @@
 var Tabela = {
+	//Armazenará os tipos dos identificadores
+	tipos: new Object(),
 	//Palavras reservadas e identificadores
 	identificadores: ["AND","DOWNTO","IN","PACKED","TO",
 				"ARRAY","ELSE","INLINE","PROCEDURE","TYPE",
@@ -30,6 +32,16 @@ var Tabela = {
 			if (i != -1) return i;  					         	//Retorna a ID
 			this.identificadores.push(nomeIdentificador);		//Adiciona o identificador
 			return this.identificadores.length - 1;		  		//Retorna a ID gerada
+		},
+	
+	//Atribui um tipo especifico para um identificador, como identificador de função, de constante, de procedimento
+	defineTipo: function (nomeIdentificador, tipo){
+			this.tipos[this.pegarId(nomeIdentificador)]=tipo;
+		},
+	
+	//Retorna o tipo do identificador 
+	retornaTipo: function (nomeIdentificador){
+			return this.tipos[this.pegarId(nomeIdentificador)];
 		}
 }
 

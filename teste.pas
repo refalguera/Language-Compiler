@@ -1,4 +1,4 @@
-program teste;
+program (teste);
 begin
   writeln ('Hello á, world.')
   {a := 1;}

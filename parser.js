@@ -237,6 +237,66 @@ var Parser = {
     parse_const: function() {
 
     },
+      parse_sittype: function(){
+          token = g();
+               if(this.tabela.retornaTipo(token.valor) == 'tipo'){
+                 break;
+               } else if(token.valor == '('){
+                   while(true){
+                     this.parse_identificador();
+                     token = g();
+
+                       if(token.valor = ')'){
+                         token = g();
+                         break;
+                       }
+                       else if (token.valor == ',') {
+                         continue;
+                         // volta pro inicio , para verfificar se o
+                         //próximo é um identificador
+                       }
+                     } else {
+                         this.erro('Valor inesperado: "' + token.valor + '"');
+                     }
+                   } else if(this.parser_const()){
+                        token = g();
+
+                        if(token.valor == '..'){
+                            this.parser_const();
+                            break;
+                        }
+                   }
+    }
+    
+    verifica_exp: function(exp){
+         if(exp == '=' | exp == '<'| exp == '>'| exp == '<>'| exp == '<='| exp == '>='){
+            return true;
+         }
+    }
+    parser_infipo: function(){
+         token = g();
+         if(token.valor == '('){
+                token = g();
+              while(true){
+               verifica_exp(token.valor);
+               token = g();
+               if(token.valor == ')'){
+                 break;
+               }else if (token.valor == ',') {
+                 continue;
+         }
+       }
+       }else if(token.valor = '.'){
+         token = g();
+         if(this.tabela.retornaTipo(token.valor) == 'function'){
+           break;
+         }
+       }else if(token.valor == '|'){
+       }else if (null) {
+         break;
+       }
+    }
+}
 }
 
 if (!module.parent) {

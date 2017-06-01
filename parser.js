@@ -150,8 +150,8 @@ var Parser = {
             }
         } 
         if(token.valor == 'CONST'){
-            this.Tabela.defineTipo(token.valor,'constante'); //Define que o identificador atual é identificador de constante
             token = this.g(); 
+            this.Tabela.defineTipo(token.valor,'constante'); //Define que o identificador atual é identificador de constante
             if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
                 token = this.g();
                 while(token.valor == '='){
@@ -174,8 +174,8 @@ var Parser = {
             }
         }
         if(token.valor == 'TYPE'){
-            this.Tabela.defineTipo(token.valor,'tipo'); //Define que o identificador atual é identificador de tipo
             token = this.g(); 
+            this.Tabela.defineTipo(token.valor,'tipo'); //Define que o identificador atual é identificador de tipo
             if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
                 token = this.g();
                 while(token.valor == '='){
@@ -198,8 +198,8 @@ var Parser = {
             }
         }
         if(token.valor == 'VAR'){
-            this.Tabela.defineTipo(token.valor,'var'); //Define que o identificador atual é identificador de variavel
             token = this.g(); 
+            this.Tabela.defineTipo(token.valor,'var'); //Define que o identificador atual é identificador de variavel
             if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
                 token = this.g();
                 while(true){
@@ -229,8 +229,8 @@ var Parser = {
         }
         while(true){
             if(token.valor == 'PROCEDURE'){
-                this.Tabela.defineTipo(token.valor,'procedure'); //Define que o identificador atual é identificador de procedimento
                 token = this.g(); 
+                this.Tabela.defineTipo(token.valor,'procedure'); //Define que o identificador atual é identificador de procedimento
                 if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
                     token = this.g();
                     this.parse_palist();
@@ -251,8 +251,8 @@ var Parser = {
                     this.erro('Valor inesperado: "' + token.valor + '"');
                 }
             } else if(token.valor ==  'FUNCTION'){
-                this.Tabela.defineTipo(token.valor,'function'); //Define que o identificador atual é identificador de função
                 token = this.g(); 
+                this.Tabela.defineTipo(token.valor,'function'); //Define que o identificador atual é identificador de função
                 if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
                     token = this.g();
                     this.parse_palist();

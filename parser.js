@@ -18,6 +18,8 @@ var Parser = {
     },
 
     verifica_se_eh: function(obtido, esperado) {
+        // verifica se uma string "obtido" é igual ao "esperado". Caso não,
+        // gera erro
         if (obtido == esperado) {
             return true;
         } else {
@@ -57,6 +59,76 @@ var Parser = {
             this.verifica_se_eh(token.valor, 'program'); //mostra erro com valor obtido ao esperar program
         }
     },
+    
+    parse_factor: function() {
+        token = g();
+        if (Tabela.retornaTipo(token.valor) == 'constante' ||
+            token.tipo == 'numero' ||
+            token.valor == 'nil' ||
+            token.tipo == 'string')
+            return true;
+
+        if (Tabela.retornaTipo(token.valor) == 'variavel') {
+            this.parser_infipo();
+            return true;
+        }
+
+        if (Tabela.retornaTipo(token.valor) == 'function') {
+            token = g();
+            if (token.valor == '(') {
+                while (true) {
+                    this.parse_expr();
+                    token = g();
+                    if (token.valor == ',')
+                        continue;
+                    if (token.valor == ')')
+                        return true;
+                    this.verifica_se_eh(token.valor, ')');
+                }
+            } else {
+                //TODO verificar o lambda
+                return true;
+            }
+        }
+
+        if (token.valor == '(') {
+            this.parse_expr();
+            token = g();
+            this.verifica_se_eh(token.valor, ')');
+            return true;
+        }
+
+        if (token.valor == 'not') {
+            this.parse_factor();
+            return true;
+        }
+
+        if (token.valor == '[') {
+            token = g();
+            if (token.valor == ']') {
+                return true;
+            } else {
+                while (true) {
+                    this.parse_expr();
+                    token = g();
+                    if (token.valor == '..') {
+                        this.parse_expr();
+                        token = g();
+                    }
+                    if (token.valor == ',') {
+                        continue;
+                    }
+
+                    if (token.valor == ']') {
+                        return true;
+                    }
+
+                    this.erro('Valor inesperado: "' + token.valor + '"');
+                }
+
+            }
+        }
+    }
 
     parse_block: function() {
         var token = this.g(); //Obtem proximo token

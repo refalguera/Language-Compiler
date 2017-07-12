@@ -112,7 +112,7 @@ var AnalisadorLexico = {
     },
 
     lerNumero: function() {
-        var regex = /[0-9]{1,16}[.]?[0-9]{1,16}/gi; // regex para identificar numero
+        var regex = /[0-9]{0,16}[.]?[0-9]{1,16}/gi; // regex para identificar numero
         return Leitor.proximoComRegex(regex);
     },
 

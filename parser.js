@@ -30,18 +30,23 @@ var Parser = {
 
     parse_program: function() {
         token = g();
-        if (token.valor == 'program') {
+        if (token.valor == 'PROGRAM') {
             this.parse_identificador();
             token = g();
             if (token.valor == '(') {
                 while (true) {
-                    this.parse_identificador();
+                    token = g();
+                    if (token.tipo != 'id') {
+                        this.erro('Identificador esperado ! Recebeu: "' + token.tipo + '"');
+                    }
                     token = g();
 
                     if (token.valor == ')') {
                         token = g();
                         this.verifica_se_eh(token.valor, ';');
+                        console.log(333);
                         this.parse_block();
+                        console.log(111);
                         token = g();
                         this.verifica_se_eh(token.valor, '.');
                         break;
@@ -56,24 +61,24 @@ var Parser = {
                 this.verifica_se_eh(token.valor, '('); // mostra erro, pois espera (
             }
         } else {
-            this.verifica_se_eh(token.valor, 'program'); //mostra erro com valor obtido ao esperar program
+            this.verifica_se_eh(token.valor, 'PROGRAM'); //mostra erro com valor obtido ao esperar program
         }
     },
     
     parse_factor: function() {
         token = g();
-        if (Tabela.retornaTipo(token.valor) == 'constante' ||
+        if (Tabela.retornaTipo(token) == 'constante' ||
             token.tipo == 'numero' ||
             token.valor == 'nil' ||
             token.tipo == 'string')
             return true;
 
-        if (Tabela.retornaTipo(token.valor) == 'variavel') {
+        if (Tabela.retornaTipo(token) == 'variavel') {
             this.parser_infipo();
             return true;
         }
 
-        if (Tabela.retornaTipo(token.valor) == 'function') {
+        if (Tabela.retornaTipo(token) == 'function') {
             token = g();
             if (token.valor == '(') {
                 while (true) {
@@ -83,7 +88,7 @@ var Parser = {
                         continue;
                     if (token.valor == ')')
                         return true;
-                    this.verifica_se_eh(token.valor, ')');
+                    this.verifica_se_eh(token.valor, ')'); // gera erro, pois esperava )
                 }
             } else {
                 //TODO verificar o lambda
@@ -125,23 +130,23 @@ var Parser = {
 
                     this.erro('Valor inesperado: "' + token.valor + '"');
                 }
-
             }
         }
-    }
+    },
 
     parse_block: function() {
-        var token = this.g(); //Obtem proximo token
+        var token = g(); //Obtem proximo token
         token.valor = token.valor.toUpperCase();
         if(token.valor == 'LABEL'){
-            token = this.g();
+            token = g();
             while(token.tipo == 'numero'){
-                token = this.g();
+                token = g();
                 if(token.valor == ','){
-                    token = this.g();
+                    token = g();
                     continue;
                     //volta
                 } else if (token.valor == ';'){
+                    token = g();
                     break;
                     //sai do while e vai para o case 'CONST'
                 } else {
@@ -149,18 +154,20 @@ var Parser = {
                 }
             }
         } 
+            
         if(token.valor == 'CONST'){
-            token = this.g(); 
-            this.Tabela.defineTipo(token.valor,'constante'); //Define que o identificador atual é identificador de constante
-            if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
-                token = this.g();
+            token = g(); 
+            if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                Tabela.defineTipo(token.valor, 'constante'); //Define que o identificador atual é identificador de constante
+                token = g();
                 while(token.valor == '='){
-                    token = this.g();
-                    this.parse_const;
-                    token = this.g();
-                    if(token.valor == ';'){
-                        if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){
-                            token = this.g();
+                    this.parse_const();
+                    token = g();
+                    if(token.valor == ';') {
+                        token = g();
+                        if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){
+                            Tabela.defineTipo(token.valor, 'constante');
+                            token = g();
                             continue;
                         } else {
                             break;
@@ -173,18 +180,20 @@ var Parser = {
                 this.erro('Valor inesperado: "' + token.valor + '"');
             }
         }
+
         if(token.valor == 'TYPE'){
-            token = this.g(); 
-            this.Tabela.defineTipo(token.valor,'tipo'); //Define que o identificador atual é identificador de tipo
-            if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
-                token = this.g();
+            token = g(); 
+            if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                Tabela.defineTipo(token.valor, 'tipo'); //Define que o identificador atual é identificador de tipo
+                token = g();
                 while(token.valor == '='){
-                    token = this.g();
                     this.parse_type();
-                    token = this.g();
+                    token = g();
                     if(token.valor == ';'){
-                        if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){
-                            token = this.g();
+                        token = g();
+                        if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){
+                            Tabela.defineTipo(token.valor, 'tipo');
+                            token = g();
                             continue;
                         } else {
                             break;
@@ -197,21 +206,30 @@ var Parser = {
                 this.erro('Valor inesperado: "' + token.valor + '"');
             }
         }
-        if(token.valor == 'VAR'){
-            token = this.g(); 
-            this.Tabela.defineTipo(token.valor,'var'); //Define que o identificador atual é identificador de variavel
-            if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
-                token = this.g();
+
+        if(token.valor == 'VAR') {
+            token = g(); 
+            if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                Tabela.defineTipo(token.valor,'var'); //Define que o identificador atual é identificador de variavel
+                token = g();
                 while(true){
                     if (token.valor == ','){
-                        token = this.g();
+                        token = g();
+                        if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                            Tabela.defineTipo(token.valor, 'var'); //Define que o identificador atual é identificador de variavel
+                        } else {
+                            this.erro('Valor inesperado: "' + token.valor + '"');
+                        }
+
+                        token = g();
                         continue;
-                    }else if(token.valor == ':'){
-                        token = this.g();
+                    } else if(token.valor == ':'){
                         this.parse_type();
+                        token = g();
                         if(token.valor == ';'){
-                            if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){
-                                token = this.g();
+                            token = g();
+                            if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){
+                                token = g();
                                 continue;
                             } else {
                                 break;
@@ -227,19 +245,20 @@ var Parser = {
                 this.erro('Valor inesperado: "' + token.valor + '"');
             }
         }
+
         while(true){
             if(token.valor == 'PROCEDURE'){
-                token = this.g(); 
-                this.Tabela.defineTipo(token.valor,'procedure'); //Define que o identificador atual é identificador de procedimento
-                if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
-                    token = this.g();
+                token = g(); 
+                if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                    Tabela.defineTipo(token.valor,'procedure'); //Define que o identificador atual é identificador de procedimento
+                    token = g();
                     this.parse_palist();
-                    token = this.g();
+                    token = g();
                     if(token.valor == ';'){
-                       token = this.g();
                        this.parse_block();
+                        token = g();
                        if(token.valor == ';'){
-                           token = this.g();
+                           token = g();
                            continue; //retorna para o inicio do loop
                        } else {
                            this.erro('Valor inesperado: "' + token.valor + '"');
@@ -251,21 +270,19 @@ var Parser = {
                     this.erro('Valor inesperado: "' + token.valor + '"');
                 }
             } else if(token.valor ==  'FUNCTION'){
-                token = this.g(); 
-                this.Tabela.defineTipo(token.valor,'function'); //Define que o identificador atual é identificador de função
-                if (token.tipo == 'id' && !this.Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
-                    token = this.g();
+                token = g(); 
+                if (token.tipo == 'id' && !Tabela.ehPascal(token.valor)){ //Verifica se é um identificador
+                    Tabela.defineTipo(token.valor,'function'); //Define que o identificador atual é identificador de função
                     this.parse_palist();
-                    token = this.g();
+                    token = g();
                     if(token.valor == ':'){
-                       token = this.g();
-                       if (this.Tabela.retornaId(token.valor) == 'tipo'){
-                           token = this.g();
+                       token = g();
+                       if (Tabela.retornaTipo(token) == 'tipo'){
+                           token = g();
                            if(token.valor == ';'){
-                               token = this.g();
                                this.parse_block();
                                if(token.valor == ';'){
-                                   token = this.g();
+                                   token = g();
                                    continue; //retorna para o inicio do loop
                                } else {
                                    this.erro('Valor inesperado: "' + token.valor + '"');
@@ -282,24 +299,42 @@ var Parser = {
                 } else {
                     this.erro('Valor inesperado: "' + token.valor + '"');
                 }
+            } else {
+                // se passou das declaraçoes de function e procedure, sai do
+                // laço
+                break;
             }
         }
+
         if(token.valor == 'BEGIN'){
             while(true){
-                token = this.g();
                 this.parse_statm();
-                token = this.g();
+                token = g();
                 if(token.valor == ';'){
                     continue;
-                } else if (token.valor=='END'){
+                } else if (token.valor == 'END'){
                     return;
                 } else {
                     this.erro('Valor inesperado: "' + token.valor + '"');
                 }
             }
         }
+
         this.erro('Valor inesperado: "' + token.valor + '"');
     
+    },
+
+    parse_type: function() {
+        var token = g();
+        if (Tabela.retornaTipo(token) == 'tipo') {
+            return true;
+        } else {
+            // TODO terminar grafo
+        }
+    },
+
+    parse_statm: function() {
+
     },
 
     parse_identificador: function() {
@@ -307,68 +342,73 @@ var Parser = {
     },
 
     parse_const: function() {
+        var token = g();
+        if (token.tipo == 'string') {
+            return true;
+        }
+        
+        if (token.valor == '+' || token.valor == '-') {
+            token = g(); // pula esse operador e vai ao proximo
+        }
 
+        var tipo = Tabela.retornaTipo(token);
+        if (tipo == 'constante' || tipo == 'numero')
+            return true;
+
+        this.erro('Valor inesperado: "' + token.valor + '". Esperando String, constante, ou ' +
+                    'valor numérico!.');
+        return false;
     },
-      parse_sittype: function(){
-          token = g();
-               if(this.tabela.retornaTipo(token.valor) == 'tipo'){
-                 break;
-               } else if(token.valor == '('){
-                   while(true){
-                     this.parse_identificador();
-                     token = g();
+    
+    parse_sitype: function(){
+        token = g();
+        if(Tabela.retornaTipo(token) == 'tipo'){
+            return true;
+        } else if(token.valor == '('){
+            while(true){
+                token = g();
+                if (Tabela.retornaTipo(token) != 'var') {
+                    this.erro('Valor inesperado: "' + token.valor + '". Esperando identificador!');
+                    token = g();
+                }
 
-                       if(token.valor = ')'){
-                         token = g();
-                         break;
-                       }
-                       else if (token.valor == ',') {
-                         continue;
-                         // volta pro inicio , para verfificar se o
-                         //próximo é um identificador
-                       }
-                     } else {
-                         this.erro('Valor inesperado: "' + token.valor + '"');
-                     }
-                   } else if(this.parser_const()){
-                        token = g();
+                if(token.valor == ')'){
+                    return true;
+                } else if (token.valor == ',') {
+                    continue;
+                    // volta pro inicio , para verfificar se o
+                    //próximo é um identificador
+                }
+            }
+        } else {
+            this.parse_const();
+            token = g();
 
-                        if(token.valor == '..'){
-                            this.parser_const();
-                            break;
-                        }
-                   }
-    }
+            if(token.valor == '..'){
+                this.parser_const();
+                return true;
+            } else {
+                this.verifica_se_eh(token.valor, '..'); // gera erro, esperava ..
+            }
+        }
+    },
     
     verifica_exp: function(exp){
-         if(exp == '=' | exp == '<'| exp == '>'| exp == '<>'| exp == '<='| exp == '>='){
+         if(exp == '=' || exp == '<' || exp == '>' || exp == '<>' || exp == '<=' || exp == '>=') {
             return true;
          }
-    }
+        return false;
+    },
+
     parser_infipo: function(){
-         token = g();
-         if(token.valor == '('){
-                token = g();
-              while(true){
-               verifica_exp(token.valor);
-               token = g();
-               if(token.valor == ')'){
-                 break;
-               }else if (token.valor == ',') {
-                 continue;
-         }
-       }
-       }else if(token.valor = '.'){
-         token = g();
-         if(this.tabela.retornaTipo(token.valor) == 'function'){
-           break;
-         }
-       }else if(token.valor == '|'){
-       }else if (null) {
-         break;
-       }
+
     }
 }
+
+function erroSai(msg) {
+    // função mostra o erro de para o programa
+    console.log(msg);
+    process.exit(-1)
 }
 
 if (!module.parent) {

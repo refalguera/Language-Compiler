@@ -40,9 +40,13 @@ var Tabela = {
 		},
 	
 	//Retorna o tipo do identificador 
-	retornaTipo: function (nomeIdentificador){
-			return this.tipos[this.pegarId(nomeIdentificador)];
-		}
+	retornaTipo: function (token){
+        if (token.tipo == 'id') {
+            return this.tipos[this.pegarId(token.valor)];
+        } else {
+            return token.tipo;
+        }
+	}
 }
 
 

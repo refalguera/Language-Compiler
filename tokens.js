@@ -34,7 +34,7 @@ var Tokens = {
     addIdentificador:function(parametro,id,linha,coluna){
         var token = {};
         token.tipo = "id";
-        token.valor = parametro;
+        token.valor = parametro.toUpperCase();
         token.id = id;
         token.linha = linha;
         token.coluna = coluna;

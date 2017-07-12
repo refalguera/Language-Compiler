@@ -2,8 +2,8 @@ var fs = require('fs');
 
 
 var Leitor = {
-    linha: 0,
-    coluna: 0,
+    linha: 1,
+    coluna: 1,
     posicao: 0,
     texto: '',
 
@@ -20,7 +20,7 @@ var Leitor = {
         // atualiza o numero da linha e coluna atual
         if (caracter == '\n') {
             this.linha++;
-            this.coluna = 0;
+            this.coluna = 1;
         } else {
             this.coluna++;
         }
@@ -47,7 +47,7 @@ var Leitor = {
             var caracter = resultado[i];
             if (caracter == '\n') {
                 this.linha++;
-                this.coluna = 0;
+                this.coluna = 1;
             } else {
                 this.coluna++;
             }
@@ -71,7 +71,6 @@ var Leitor = {
 
     erro: function(msg) {
         console.error(msg + ' (' + this.linha + ':' + this.coluna + ')');
-        process.exit(-1);
     }
 }
 

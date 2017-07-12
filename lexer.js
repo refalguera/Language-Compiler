@@ -1,9 +1,6 @@
 var fs = require('fs');
 var Leitor = require('./leitor.js');
-var Tokens = require('./tokens.js');
 var Tabela = require('./tabela.js');
-
-var debug = true; // se true, mostra msgs de debug na tela
 
 
 function erroSai(msg) {
@@ -44,15 +41,13 @@ var AnalisadorLexico = {
                     return null;
                 }
             } while (' \t\n'.indexOf(charAtual) !== -1);
-            debug && console.log('comentário');
         }
         
         if (/[0-9]/i.test(charAtual)) { // testa se é numero
             // isso verifica se o char esta entre 0 e 9
             var numero = this.lerNumero();
             if (numero != null) {
-                debug && console.log('numero -> ' + numero);
-                return Tokens.addNumero(parseFloat(numero), linha, numero);
+                return Tabela.inserirToken(parseFloat(numero), 'numero', linha, coluna);
             }
         }
         
@@ -60,8 +55,7 @@ var AnalisadorLexico = {
             var string = this.lerString();
             if (string != null) {
                 string = string.substring(1, string.length - 1);
-                debug && console.log('string -> ' + string);
-                return Tokens.addString(string, linha, coluna);
+                return Tabela.inserirToken(string, 'string', linha, coluna);
             }
         } 
         
@@ -70,8 +64,7 @@ var AnalisadorLexico = {
             var pontuacao = this.lerPontuacao();
             
             if (pontuacao != '') {
-                debug && console.log('pontuação -> ' + pontuacao);
-                return Tokens.addPontuacao(pontuacao, linha, coluna);
+                return Tabela.inserirToken(pontuacao, 'pontuação', linha, coluna);
             }
         }
         
@@ -80,8 +73,7 @@ var AnalisadorLexico = {
             // testa se é um operador: +, -, *, /, :=, =
             var operador = this.lerOperador();
             if (operador != null) {
-                debug && console.log('operador -> ' + operador);
-                return Tokens.addOperador(operador, linha, coluna);
+                return Tabela.inserirToken(operador, 'operador', linha, coluna);
             }
         }
         
@@ -89,9 +81,7 @@ var AnalisadorLexico = {
         if (/[a-z]/ig.test(charAtual)) {
             var identificador = this.lerIdentificador();
             if (identificador != null) {
-                var id = Tabela.pegarId(identificador);
-                debug && console.log('identificador -> ' + identificador + " | " + id);
-                return Tokens.addIdentificador(identificador, id, linha, coluna);
+                return Tabela.inserirToken(identificador, 'id', linha, coluna);
             }
         }
 
@@ -153,7 +143,6 @@ if (!module.parent) {
 
     Leitor.ler(nomeArquivo);
     AnalisadorLexico.processar();
-    console.log(Tokens.itens);
 } else {
     module.exports = AnalisadorLexico;
 }

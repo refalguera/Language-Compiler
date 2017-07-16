@@ -8,10 +8,10 @@ var identificadoresPascal = {
     'OBJECT': '', 'OF': '', 'ON': '', 'OPERATOR': '', 'OR': '', 'PACKED': '',
     'PROCEDURE': '', 'PROGRAM': '', 'REAL': 'tipo', 'RECORD': '', 'REPEAT': '',
     'SET': '', 'SHL': '', 'STRING': 'tipo', 'THEN': '', 'TO': '', 'TRUE': '',
-    'TYPE': '', 'UNIT': '', 'USES': '', 'VAR': '', 'WHILE': '', 'WITH': '', 
-    'XOR': ''}
+    'TYPE': '', 'UNTIL': '', 'UNIT': '', 'USES': '', 'VAR': '', 'WHILE': '', 'WITH': '', 
+    'WRITE': 'procedure', 'WRITELN': 'procedure', 'XOR': ''};
 
-var debug = true; // se true, mostra os tokens enquanto vai lendo
+var debug = false; // se true, mostra os tokens enquanto vai lendo
 
 var Tabela = {
 	//tabela hash de identificadores, mapeando nomeIdentificador: descricao
@@ -37,7 +37,7 @@ var Tabela = {
             console.log(msg);
         }
     },
-	
+    
 	//Atribui um tipo especifico para um identificador, como identificador de função, de constante, de procedimento
     inserirToken: function(lexema, tipo, linha, coluna) {
         // se o token é do tipo "id", este é armazenado na tabela de tokens
@@ -51,7 +51,7 @@ var Tabela = {
             reservado: false,
             usado: false,
             linha: linha,
-            coluna: coluna
+            coluna: coluna - 1
         }
 
         var resultado = token;

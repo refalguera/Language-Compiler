@@ -6,6 +6,7 @@ var Leitor = {
     coluna: 1,
     posicao: 0,
     texto: '',
+    qtd_erros: 0,
 
     ler: function(nomeArquivo) {
         // le o arquivo para uma string, usando a o formato utf8 (para aceitar
@@ -33,6 +34,7 @@ var Leitor = {
         // passada em regex.
         // carrega uma copia da string comecando no ponteiro atual
         var sub = this.texto.substring(--this.posicao);
+        this.coluna--;
         var resultado = regex.exec(sub);
 
         if (resultado === null) {
@@ -71,6 +73,7 @@ var Leitor = {
 
     erro: function(msg) {
         console.error(msg + ' (' + this.linha + ':' + this.coluna + ')');
+        this.qtd_erros += 1;
     }
 }
 

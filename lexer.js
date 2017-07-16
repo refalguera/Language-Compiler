@@ -11,6 +11,8 @@ function erroSai(msg) {
 
 var AnalisadorLexico = {
 
+    token_devolver: null,
+
     processar: function() {
         // le todos os tokens até terminar o arquivo
         while(!Leitor.fimDoArquivo()) {
@@ -18,7 +20,18 @@ var AnalisadorLexico = {
         }
     },
 
+    devolverToken: function(token) {
+        // retorna token na próxima vez que lerProximoToken for chamado
+        this.token_devolver = token;
+    },
+
     lerProximoToken: function() {
+        if (this.token_devolver !== null) {
+            var t = this.token_devolver;
+            this.token_devolver = null;
+            return t;
+        }
+        
         // pula todos os espaços, tabs e quebra de linha
         var charAtual;
         do {
@@ -32,16 +45,18 @@ var AnalisadorLexico = {
         // com }
         var linha = Leitor.linha;
         var coluna = Leitor.coluna;
-        if (charAtual === '{') {
-            this.lerComentario();
-            do {
-                charAtual = Leitor.proximo();
-                // testa se acabou de ler o arquivo
-                if (Leitor.fimDoArquivo()) {
-                    return null;
-                }
-            } while (' \t\n'.indexOf(charAtual) !== -1);
-        }
+        do {
+            if (charAtual === '{') {
+                this.lerComentario();
+                do {
+                    charAtual = Leitor.proximo();
+                    // testa se acabou de ler o arquivo
+                    if (Leitor.fimDoArquivo()) {
+                        return null;
+                    }
+                } while (' \t\n'.indexOf(charAtual) !== -1);
+            }
+        } while (charAtual == '{');
         
         if (/[0-9]/i.test(charAtual)) { // testa se é numero
             // isso verifica se o char esta entre 0 e 9
@@ -118,7 +133,7 @@ var AnalisadorLexico = {
     },
 
     lerPontuacao: function() {
-        var regex = /(:=)|([\(\):,\[\];.])/gi;
+        var regex = /(:=)|(\.\.)|([\(\):,\[\];.])/gi;
         return Leitor.proximoComRegex(regex);
     },
 

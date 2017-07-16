@@ -4,9 +4,24 @@ var Tabela = require('./tabela.js');
 var fs = require('fs');
 
 
+function resultados() {
+    console.log('\n\n\n');
+    Tabela.mostrarTabela();
+
+    console.log('\n');
+    console.log('Compilação terminada!');
+    console.log((Leitor.qtd_erros + Parser.qtd_erros) + " erro(s) encontrados !");
+    process.exit(0);
+}
+
 g = function(){
     // atalho para chamar a função abaixo
-    return AnalisadorLexico.lerProximoToken();
+    var valor = AnalisadorLexico.lerProximoToken();
+    if (!valor) {
+        resultados();
+    } else {
+        return valor;
+    }
 }
 
 var Parser = {
@@ -33,32 +48,37 @@ var Parser = {
     parse_program: function() {
         token = g();
         if (token.lexema == 'PROGRAM') {
-            this.parse_identificador();
             token = g();
-            if (token.lexema == '(') {
-                while (true) {
-                    token = g();
-                    if (token.tipo != 'id') {
-                        this.erro('Identificador esperado ! Recebeu: "' + token.tipo + '"');
-                    }
-                    token = g();
 
-                    if (token.lexema == ')') {
+            if (token.tipo == 'id') {
+                token = g();
+                if (token.lexema == '(') {
+                    while (true) {
                         token = g();
-                        this.verifica_se_eh(token.lexema, ';');
-                        this.parse_block();
+                        if (token.tipo != 'id') {
+                            this.erro('Identificador esperado ! Recebeu: "' + token.tipo + '"');
+                        }
                         token = g();
-                        this.verifica_se_eh(token.lexema, '.');
-                        break;
-                    } else if (token.lexema == ',') {
-                        continue;
-                        // volta ao inicio do laço
-                    } else {
-                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando ")" ou ","');
+
+                        if (token.lexema == ')') {
+                            token = g();
+                            this.verifica_se_eh(token.lexema, ';');
+                            this.parse_block();
+                            token = g();
+                            this.verifica_se_eh(token.lexema, '.');
+                            break;
+                        } else if (token.lexema == ',') {
+                            continue;
+                            // volta ao inicio do laço
+                        } else {
+                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando ")" ou ","');
+                        }
                     }
+                } else {
+                    this.verifica_se_eh(token.lexema, '('); // mostra erro, pois espera (
                 }
             } else {
-                this.verifica_se_eh(token.lexema, '('); // mostra erro, pois espera (
+                this.erro('Esperando identificador');
             }
         } else {
             this.verifica_se_eh(token.lexema, 'PROGRAM'); //mostra erro com valor obtido ao esperar program
@@ -74,7 +94,7 @@ var Parser = {
             return true;
 
         if (token.tipo_id == 'variavel') {
-            this.parser_infipo();
+            this.parse_infipo();
             return true;
         }
 
@@ -91,9 +111,12 @@ var Parser = {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ")" ou ","');
                 }
             } else {
-                //TODO verificar o lambda
-                return true;
+                this.verifica_se_eh(token.lexema, '('); // gera erro, esperando "("    
             }
+            //else {
+                //TODO verificar o lambda
+               // return true;
+            //}
         }
 
         if (token.lexema == '(') {
@@ -103,7 +126,7 @@ var Parser = {
             return true;
         }
 
-        if (token.lexema == 'not') {
+        if (token.lexema == 'NOT') {
             this.parse_factor();
             return true;
         }
@@ -131,6 +154,318 @@ var Parser = {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando "..", "," ou "]"');
                 }
             }
+        }
+    },
+
+    parse_infipo: function() {
+        while (true) {
+            token = g();
+
+            if (token.lexema == '[') {
+                while(true) {
+                    this.parse_expr();
+
+                    token = g();
+
+                    if (token.lexema == ',') {
+                        continue;
+                    } else if (token.lexema == ']') {
+                        break;
+                    }
+                }
+            } else if (token.lexema == '.') {
+                token = g();
+
+                if (token.tipo_id == 'function') {
+                    continue;
+                } else {
+                    this.erro("Esperando function");
+                }
+            } else {
+                // TODO veriticar setinha
+                AnalisadorLexico.devolverToken(token);
+                return true;
+            }
+        }
+    },
+
+    parse_palist: function() {
+        token = g();
+
+        if (token.lexema == '(') {
+            while (true) {
+                token = g();
+
+                if (token.tipo_id == 'procedure') {
+                    while (true) {
+                        token = g();
+
+                        if (token.lexema == ',') {
+                            continue;
+                        } else if (token.lexema == ';') {
+                            break;
+                        } else if (token.lexema == ')') {
+                            return true;
+                        } else {
+                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando ",", ";" ou  ")"');
+                            return false;
+                        }
+                    }
+                } else {
+                    if (token.tipo_id != 'function' && token.tipo_id != 'variavel') {
+                        AnalisadorLexico.devolverToken(token);
+                    }
+                    while (true) {
+                        token = g();
+
+                        if (token.tipo == 'id') {
+                            token = g();
+
+                            if (token.lexema == ',') {
+                                continue;
+                            } else if (token.lexema == ':') {
+                                break;
+                            } else {
+                                this.erro('Valor inesperando: "' + token.lexema + '". Esperando "," ou ":"');
+                                return false;
+                            }
+                        } else {
+                            this.erro('Esperando identificador');
+                            return true;
+                        }
+                    }
+
+                    token = g();
+
+                    if (token.tipo_id == 'tipo') {
+                        token = g();
+
+                        if (token.lexema == ';') {
+                            continue;
+                        } else if (token.lexema == ')') {
+                            return true;
+                        }
+                    } else {
+                        this.erro('Esperando tipo');
+                        return false;
+                    }
+                } 
+            }
+        } else {
+            AnalisadorLexico.devolverToken(token);
+            return true;
+        }
+    },
+
+    parse_statm: function () {
+        var token = g();
+
+        if (token.tipo == 'numero') {
+            token = g();
+            if (token.lexema != ':') {
+                this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":"');
+            }
+            token = g();
+        }
+        
+        if (token.tipo_id == 'variavel' || token.tipo_id == 'function') {
+            if (token.tipo_id == 'variavel') {
+                this.parse_infipo();
+            }
+            token = g();
+            if (token.lexema == ':=') {
+                this.parse_expr();
+                return true;
+            } else {
+                this.verifica_se_eh(token.lexema, ':='); // era erro, esperando :=
+                return false;
+            }
+        } else if (token.tipo_id == 'procedure') {
+            token = g();
+
+            if (token.lexema == '(' ) {
+                while (true) {
+                    token = g();
+                    if (token.tipo_id != 'procedure') {
+                        AnalisadorLexico.devolverToken(token);
+                        this.parse_expr();
+                    }
+
+                    token = g();
+
+                    if (token.lexema == ',') {
+                        continue; 
+                    } else if (token.lexema == ')') {
+                        return true;
+                    } else {
+                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ")"');
+                    }
+                }
+            } else {
+                this.verifica_se_eh(token.lexema, '('); // gera erro, esperando "("
+            }
+            // TODO verificar lambda
+        } else if (token.lexema == 'BEGIN') {
+            while (true) {
+                this.parse_statm();
+                token = g();
+
+                if (token.lexema == ';') {
+                    continue;
+                } else if (token.lexema == 'END') {
+                    return true;
+                } else {
+                    this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "end"');
+                }
+            }
+        } else if (token.lexema == 'IF') {
+            this.parse_expr();
+            token = g();
+
+            if (token.lexema == 'THEN') {
+                this.parse_statm();
+
+                token = g();
+                if (token.lexema != 'ELSE') {
+                    AnalisadorLexico.devolverToken(token);
+                    // TODO verificar lambda
+                    return true;
+                }
+
+                this.parse_statm();
+                // TODO verificar lambda
+                return true;
+            } else {
+                this.erro('Valor inesperado: "' + token.lexema + '". Esperando "then"');
+            }
+        } else if (token.lexema == 'CASE') {
+            this.parse_expr();
+
+            token = g();
+
+            if (token.lexema == 'OF') {
+                while (true) {
+                    token = g();
+
+                    if (token.lexema == '+' || token.lexema == '-') {
+                        token = g();
+                    }
+
+                    if (token.tipo == 'string' || token.tipo =='numero' ||
+                        token.tipo_id == 'constante') {
+                        token = g();
+
+                        if (token.lexema == ',') {
+                            continue;
+                        } else if (token.lexema == ':') {
+                            this.parse_statm();
+                            token = g();
+                        } else {
+                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ";"');
+                        }
+                    }
+
+                    if (token.lexema == ';') {
+                        continue;
+                    } else if (token.lexema == 'END') {
+                        return true;
+                    } else {
+                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando "end" ou ";"');
+                    }
+                }
+            } else {
+                // gera erro, esperando OF
+                this.verifica_se_eh(token.lexema, 'OF');
+            }
+        } else if (token.lexema == 'WHILE') {
+            this.parse_expr();
+            token = g();
+            if (token.lexema == 'DO') {
+                this.parse_statm();
+                return true;
+            } else {
+                // gera erro, esperando do
+                this.verifica_se_eh(token.lexema, 'DO');
+            }
+        } else if (token.lexema == 'REPEAT') {
+            while (true) {
+                this.parse_statm();
+                token = g();
+
+                if (token.lexema == ';')
+                    continue;
+                else if (token.lexema == 'UNTIL') {
+                    this.parse_expr();
+                    return true;
+                } else {
+                    this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "UNTIL"');
+                }
+            }
+        } else if (token.lexema == 'FOR') {
+            token = g();
+            if (token.tipo_id == 'variavel') {
+                this.parse_infipo();
+                token = g();
+
+                if (token.lexema == ':=') {
+                    this.parse_expr();
+
+                    token = g();
+
+                    if (token.lexema == 'TO' || token.lexema == 'DOWNTO') {
+                        this.parse_expr();
+
+                        token = g();
+
+                        if (token.lexema == 'DO') {
+                            this.parse_statm();
+                            return true;
+                        } else {
+                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando "DO"');
+                        }
+
+                    } else {
+                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando "TO" ou "DOWNTO"');
+                    }
+
+                } else {
+                    this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":="');
+                }
+            } else {
+                this.erro('Esperando uma variável!');
+            }
+        } else if (token.lexema == 'WITH') {
+            while (true) {
+                token = g();
+
+                if (token.tipo_id == 'variavel') {
+                    this.parse_infipo();
+
+                    token = g();
+
+                    if (token.lexema == ',') {
+                        continue;
+                    } else if (token.lexema == 'DO') {
+                        this.parse_statm();
+                        return true;
+                    } else {
+                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou "DO"');
+                    }
+                } else {
+                    this.erro('Esperando uma variável');
+                }
+            }
+        } else if (token.lexema == 'GOTO') {
+            token = g();
+
+            if (token.tipo == 'numero') {
+                return true;
+            } else {
+                this.erro('Esperando um número');
+            }
+        } else {
+            AnalisadorLexico.devolverToken(token);
+            return true
         }
     },
 
@@ -330,17 +665,210 @@ var Parser = {
         var token = g();
         if (token.tipo_id == 'tipo') {
             return true;
+        }
+
+        if (token.lexema == 'PACKED') {
+            token = g();
+        }
+
+        if (token.lexema == 'ARRAY') {
+            token = g();
+
+            if (token.lexema == '[') {
+                while (true) {
+                    this.parse_sitype();
+                    token = g();
+                    if (token.lexema == ',') {
+                        continue;
+                    } else if (token.lexema == ']') {
+                        token = g();
+
+                        if (token.lexema == 'OF') {
+                            this.parse_type();
+                            return true;
+                        } else {
+                            this.verifica_se_eh(token.lexema, 'OF'); // gera erro, esperando OF
+                        }
+                    } else {
+                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou "]"');
+                    }
+                }
+            } else {
+                this.verifica_se_eh(token.lexema, '['); // gera erro, esperando [
+            }
+        } else if (token.lexema == 'FILE') {
+            token = g();
+
+            if (token.lexema == 'OF') {
+                this.parse_type();
+                return true;
+            } else {
+                this.verifica_se_eh(token.lexema, 'OF'); // gera erro, esperando "OF"
+            }
+        } else if (token.lexema == 'SET') {
+            token = g();
+
+            if (token.lexema == 'OF') {
+                this.parse_sitype();
+                return true;
+            } else {
+                this.verifica_se_eh(token.lexema, 'OF'); // gera erro, esperando OF
+            }
+        } else if (token.lexema == 'RECORD') {
+            this.parse_filist();
+            token = g();
+
+            if (token.lexema == 'END') {
+                return true;
+            } else {
+                this.verifica_se_eh(token.lexema, 'END'); // gera erro, esperando END
+            }
         } else {
-            // TODO terminar grafo
+            AnalisadorLexico.devolverToken(token);
+
+            this.parse_sitype();
+            return true;
         }
     },
 
-    parse_statm: function() {
+    parse_filist: function() {
+        while (true) {
+            token = g();
 
+            if (token.tipo == 'id') {
+                token = g();
+
+                if (token.lexema == ',') {
+                    continue;
+                } else if (token.lexema == ':') {
+                    this.parse_type();
+                    token = g();
+                } else {
+                    this.erro('Valor insperado: "' + token.lexema + '". Esperando "," ou ";"');
+                }
+            }
+
+            if (token.lexema == ';') {
+                continue;
+            }
+
+            token = g();
+
+            if (token.lexema == 'CASE') {
+                token = g();
+
+                if (token.tipo == 'id') {
+                    token = g();
+                    
+                    this.verifica_se_eh(token.lexema, ',');
+
+                    token = g();
+                }
+
+                if (token.tipo_id == 'tipo') {
+                    token = g();
+
+                    if (token.lexema == 'OF') {
+                        while (true) {
+                            token = g();
+
+                            if (token.lexema == '+' || token.lexema == '-') {
+                                token = g();
+                            }
+
+                            if (token.tipo == 'string' || token.tipo_id == 'constante' || token.tipo == 'numero') {
+                                token = g();
+
+                                if (token.lexema == ',') {
+                                    continue;
+                                } else if (token.lexema == ':') {
+                                    token = g();
+
+                                    if (token.lexema == '(') {
+                                        this.parse_filist();
+
+                                        token = g();
+
+                                        this.verifica_se_eh(token.lexema, ')');
+
+                                        token = g();
+                                    } else {
+                                        this.verifica_se_eh(token.lexema, '('); // gera erro, esperando (
+                                    }
+                                } else {
+                                    this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ":"');
+                                }
+                            }
+
+                            if (token.lexema == ';') {
+                                continue;
+                            } else {
+                                AnalisadorLexico.devolverToken(token);
+                                return true;
+                            }
+                        }
+                    } else {
+                        this.verifica_se_eh(token.lexema, 'OF'); // gera erro, esperando OF
+                    }
+                } else {
+                    this.erro('Esperando tipo');
+                }
+            } else {
+                AnalisadorLexico.devolverToken(token);
+            }
+        }
     },
 
-    parse_identificador: function() {
+    parse_term: function() {
+        while (true) {
+            this.parse_factor();
+            var token = g();
 
+            if (token.lexema == '*' || token.lexema == '/' || token.lexema == 'DIV' ||
+                token.lexema == 'MOD' || token.lexema == 'AND')
+                continue;
+
+            AnalisadorLexico.devolverToken(token);
+            return true;
+        }
+    },
+
+    parse_siexpr: function() {
+        var token = g();
+        if (token.lexema == '+' || token.lexema == '-') {
+            token = g();
+        }
+
+        AnalisadorLexico.devolverToken(token);
+
+        while (true) {
+            this.parse_term();
+            token = g();
+
+            if (token.lexema == '+' || token.lexema == '-' || token.lexema == 'OR') {
+                continue;
+            }
+
+            AnalisadorLexico.devolverToken(token);
+            return true;
+        }
+    },
+
+    parse_expr: function() {
+        this.parse_siexpr();
+
+        var token = g();
+
+        if (token.lexema == '=' || token.lexema == '<' || token.lexema == '>'
+            || token.lexema == '<>' || token.lexema == '>=' 
+            || token.lexema ==  '<=' || token.lexema == 'IN') {
+            // ok
+            this.parse_siexpr();
+            return true;
+        }
+
+        // o token não foi usado, deve ser devolvido
+        AnalisadorLexico.devolverToken(token);
     },
 
     parse_const: function() {
@@ -384,11 +912,12 @@ var Parser = {
                 }
             }
         } else {
+            AnalisadorLexico.devolverToken(token);
             this.parse_const();
             token = g();
 
             if(token.lexema == '..'){
-                this.parser_const();
+                this.parse_const();
                 return true;
             } else {
                 this.verifica_se_eh(token.lexema, '..'); // gera erro, esperava ..
@@ -402,10 +931,6 @@ var Parser = {
          }
         return false;
     },
-
-    parser_infipo: function(){
-
-    }
 }
 
 function erroSai(msg) {
@@ -429,10 +954,5 @@ if (!module.parent) {
 
     Leitor.ler(nomeArquivo);
     Parser.parse_program();
-
-    console.log('\n\n\n');
-    console.log('Compilação terminada!');
-    console.log(Parser.qtd_erros + " erro(s) encontrados !");
-
-    Tabela.mostrarTabela();
+    resultados();
 }

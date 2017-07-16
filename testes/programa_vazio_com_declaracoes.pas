@@ -1,4 +1,4 @@
-program (entrada, saida);
+program nome(entrada, saida);
 label 1, 2, 3, 4, 5;
 
 const

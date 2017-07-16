@@ -1,3 +1,3 @@
-program (entrada, saida);
+program nome(entrada, saida);
 begin
 end.

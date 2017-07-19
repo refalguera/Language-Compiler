@@ -291,12 +291,14 @@ var Parser = {
         }
         
         if (token.tipo_id == 'variavel' || token.tipo_id == 'function') {
+            var end = token.endereco;
             if (token.tipo_id == 'variavel') {
                 this.parse_infipo();
             }
             token = g();
             if (token.lexema == ':=') {
                 this.parse_expr();
+                this.gera('ARMZ 0,' + end); //Atribuição de valor em variavel
                 return true;
             } else {
                 this.verifica_se_eh(token.lexema, ':='); // era erro, esperando :=
@@ -539,15 +541,17 @@ var Parser = {
             if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
                 if (!this.declara_id(token)) return false;
                 token.tipo_id = 'constante';
+                var ant = token;
                 token = g();
                 while(token.lexema == '='){
-                    this.parse_const();
+                    ant.valor = this.parse_const();
                     token = g();
                     if(token.lexema == ';') {
                         token = g();
                         if (token.tipo == 'id' && !token.reservado){
                             if (!this.declara_id(token)) return false;
                             token.tipo_id = 'constante';
+                            ant = token;
                             token = g();
                             continue;
                         } else {
@@ -909,16 +913,16 @@ var Parser = {
                     case '*':
                     this.gera('MULT');
                     break;
-                    case 'div':
+                    case 'DIV':
                     this.gera('DIVI');
                     break;
-                    case 'and':
-                    this.gera('AND');
+                    case 'AND':
+                    this.gera('CONJ');
                     break;
                     case '/':
-                    //TO DO
+                    this.gera('DIVI'); //Divisão inteira(?)
                     break;
-                    case 'mod':
+                    case 'MOD':
                     //TO DO
                     break;
                 }
@@ -932,7 +936,11 @@ var Parser = {
 
     parse_siexpr: function() {
         var token = g();
+        var ant;
+
         if (token.lexema == '+' || token.lexema == '-') {
+            this.gera('CRCT 0');
+            ant = token.lexema;
             token = g();
         }
 
@@ -940,9 +948,14 @@ var Parser = {
 
         while (true) {
             this.parse_term();
+            if(ant=='-') this.gera('SUBT');
+            else if(ant=='+') this.gera('SOMA');
+            else if(ant=='OR') this.gera('DISJ');
+
             token = g();
 
             if (token.lexema == '+' || token.lexema == '-' || token.lexema == 'OR') {
+                ant = token.lexema;
                 continue;
             }
 
@@ -956,10 +969,32 @@ var Parser = {
 
         var token = g();
 
-        if (token.lexema == '=' || token.lexema == '<' || token.lexema == '>'
-            || token.lexema == '<>' || token.lexema == '>=' 
-            || token.lexema ==  '<=' || token.lexema == 'IN') {
-            // ok
+        if (token.lexema == '=' ){
+            this.parse_siexpr();
+            this.gera('CMIG');
+            return true;
+        }else if (token.lexema == '<'){
+            this.parse_siexpr();
+            this.gera('CMME');
+            return true;
+        }else if (token.lexema == '>'){
+            this.parse_siexpr();
+            this.gera('CMMA');
+            return true;
+        }else if (token.lexema == '<>'){
+            this.parse_siexpr();
+            this.gera('CMDG');
+            return true;
+        }else if (token.lexema == '>='){
+            this.parse_siexpr();
+            this.gera('CMAG');
+            return true;
+        }else if (token.lexema ==  '<='){
+            this.parse_siexpr();
+            this.gera('CMEG');
+            return true;
+        }else if (token.lexema == 'IN') {
+            // TO DO
             this.parse_siexpr();
             return true;
         }
@@ -978,8 +1013,13 @@ var Parser = {
             token = g(); // pula esse operador e vai ao proximo
         }
 
-        if (token.tipo_id == 'constante' || token.tipo == 'numero')
-            return true;
+        if (token.tipo_id == 'constante'){
+            return token.valor;
+        } 
+
+        if (token.tipo == 'numero'){
+            return token.lexema;
+        }
 
         this.erro('Valor inesperado: "' + token.lexema + '". Esperando String, constante, ou ' +
                     'valor numérico!.');

@@ -902,9 +902,9 @@ var Parser = {
             this.parse_factor();
             var token = g();
 
-            if (token.lexema == '*' || token.lexema == '/' || token.lexema == 'DIV' ||
+            while (token.lexema == '*' || token.lexema == '/' || token.lexema == 'DIV' ||
                 token.lexema == 'MOD' || token.lexema == 'AND'){
-                
+                this.parse_factor();
                 switch(token.lexema){
                     case '*':
                     this.gera('MULT');
@@ -922,7 +922,7 @@ var Parser = {
                     //TO DO
                     break;
                 }
-                continue;
+                var token = g();
             }
 
             AnalisadorLexico.devolverToken(token);

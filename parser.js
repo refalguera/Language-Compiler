@@ -11,6 +11,7 @@ function resultados() {
     console.log('\n');
     console.log('Compilação terminada!');
     console.log((Leitor.qtd_erros + Parser.qtd_erros) + " erro(s) encontrados !");
+    console.log('\n' + Parser.compilado);
     process.exit(0);
 }
 
@@ -27,6 +28,8 @@ g = function(){
 var Parser = {
 
     qtd_erros: 0,
+    compilado: 'INPP\n', //String que terá o código MEPA gerado
+    endereco: 0,
 
     erro: function(msg) {
         // apresenta erro na tela e fecha o programa
@@ -89,13 +92,25 @@ var Parser = {
     
     parse_factor: function() {
         token = g();
-        if (token.tipo_id == 'constante' ||
-            token.tipo == 'numero' ||
-            token.lexema == 'nil' ||
+        if (token.tipo_id == 'constante'){
+            s = token.valor;
+            if(typeof(token.valor)=='boolean')
+                s = s==true?1:0;
+            this.gera('CRCT ' + s);
+            return true;
+        }
+        
+        if (token.tipo == 'numero'){
+            this.gera('CRCT '+ token.lexema);
+            return true;
+        }
+         
+        if (token.lexema == 'nil' ||
             token.tipo == 'string')
             return true;
 
         if (token.tipo_id == 'variavel') {
+            this.gera('CRVL 0,' + token.endereco);
             this.parse_infipo();
             return true;
         }
@@ -131,6 +146,7 @@ var Parser = {
 
         if (token.lexema == 'NOT') {
             this.parse_factor();
+            this.gera('NEGA');
             return true;
         }
 
@@ -493,7 +509,6 @@ var Parser = {
             this.erro('Identificador já declarado: "' + token.lexema + '"');
             return false;
         }
-
         token.declarado = true;
         return true;
     },
@@ -582,14 +597,17 @@ var Parser = {
             if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
                 if (!this.declara_id(token)) return;
                 token.tipo_id = 'variavel';
+                this.gera('AMEM 1'); //Alocação de memória
+                token.endereco = this.endereco++;
                 token = g();
                 while(true){
                     if (token.lexema == ','){
                         token = g();
                         if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
                             if (!this.declara_id(token)) return;
-                            token.declarado = true;
                             token.tipo_id = 'variavel';
+                            this.gera('AMEM 1'); //Alocação de memória
+                            token.endereco = this.endereco++;
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
                             return false;
@@ -605,6 +623,8 @@ var Parser = {
                             if (token.tipo == 'id' && !token.reservado){
                                 if (!this.declara_id(token)) return;
                                 token.tipo_id = 'variavel';
+                                this.gera('AMEM 1'); //Alocação de memória
+                                token.endereco = this.endereco++;
                                 token = g();
                                 continue;
                             } else {
@@ -883,8 +903,27 @@ var Parser = {
             var token = g();
 
             if (token.lexema == '*' || token.lexema == '/' || token.lexema == 'DIV' ||
-                token.lexema == 'MOD' || token.lexema == 'AND')
+                token.lexema == 'MOD' || token.lexema == 'AND'){
+                
+                switch(token.lexema){
+                    case '*':
+                    this.gera('MULT');
+                    break;
+                    case 'div':
+                    this.gera('DIVI');
+                    break;
+                    case 'and':
+                    this.gera('AND');
+                    break;
+                    case '/':
+                    //TO DO
+                    break;
+                    case 'mod':
+                    //TO DO
+                    break;
+                }
                 continue;
+            }
 
             AnalisadorLexico.devolverToken(token);
             return true;
@@ -990,6 +1029,10 @@ var Parser = {
          }
         return false;
     },
+
+    gera: function(mepa){
+        this.compilado = this.compilado + mepa + '\n';
+    }
 }
 
 function erroSai(msg) {
@@ -1013,5 +1056,6 @@ if (!module.parent) {
 
     Leitor.ler(nomeArquivo);
     Parser.parse_program();
+    Parser.compilado = Parser.compilado + 'PARA';
     resultados();
 }

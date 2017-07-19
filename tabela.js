@@ -48,6 +48,8 @@ var Tabela = {
             lexema: lexema,
             tipo: tipo,
             tipo_id: '',
+            endereco,
+            valor,
             reservado: false,
             declarado: false,
             usado: false,

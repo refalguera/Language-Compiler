@@ -1,4 +1,5 @@
 var fs = require('fs');
+var crlf = require('./crlf.js');
 
 
 var Leitor = {
@@ -11,7 +12,9 @@ var Leitor = {
     ler: function(nomeArquivo) {
         // le o arquivo para uma string, usando a o formato utf8 (para aceitar
         // caracteres especiais
-        this.texto = fs.readFileSync(nomeArquivo, 'utf8').replace(/\/r\/n/, /\n/);
+        this.texto = fs.readFileSync(nomeArquivo, 'utf8')
+        this.texto = crlf.setLineEnding(this.texto, 'LF');
+
     },
 
     proximo: function() {

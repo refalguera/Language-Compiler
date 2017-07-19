@@ -32,6 +32,7 @@ var Parser = {
         // apresenta erro na tela e fecha o programa
         console.log(msg + '". Linha ' + Leitor.linha + ', coluna ' + Leitor.coluna);
         this.qtd_erros += 1;
+        AnalisadorLexico.pularLinha();
     },
 
     verifica_se_eh: function(obtido, esperado) {
@@ -79,6 +80,7 @@ var Parser = {
                 }
             } else {
                 this.erro('Esperando identificador');
+                return false;
             }
         } else {
             this.verifica_se_eh(token.lexema, 'PROGRAM'); //mostra erro com valor obtido ao esperar program
@@ -109,6 +111,7 @@ var Parser = {
                     if (token.lexema == ')')
                         return true;
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ")" ou ","');
+                    return false;
                 }
             } else {
                 this.verifica_se_eh(token.lexema, '('); // gera erro, esperando "("    
@@ -152,6 +155,7 @@ var Parser = {
                     }
 
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando "..", "," ou "]"');
+                    return false;
                 }
             }
         }
@@ -180,6 +184,7 @@ var Parser = {
                     continue;
                 } else {
                     this.erro("Esperando function");
+                    return false;
                 }
             } else {
                 // TODO veriticar setinha
@@ -264,6 +269,7 @@ var Parser = {
             token = g();
             if (token.lexema != ':') {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":"');
+                return false;
             }
             token = g();
         }
@@ -299,6 +305,7 @@ var Parser = {
                         return true;
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ")"');
+                        return false;
                     }
                 }
             } else {
@@ -316,6 +323,7 @@ var Parser = {
                     return true;
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "end"');
+                    return false;
                 }
             }
         } else if (token.lexema == 'IF') {
@@ -337,6 +345,7 @@ var Parser = {
                 return true;
             } else {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando "then"');
+                return false;
             }
         } else if (token.lexema == 'CASE') {
             this.parse_expr();
@@ -362,6 +371,7 @@ var Parser = {
                             token = g();
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ";"');
+                            return false;
                         }
                     }
 
@@ -371,6 +381,7 @@ var Parser = {
                         return true;
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "end" ou ";"');
+                        return false;
                     }
                 }
             } else {
@@ -399,6 +410,7 @@ var Parser = {
                     return true;
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "UNTIL"');
+                    return false;
                 }
             }
         } else if (token.lexema == 'FOR') {
@@ -422,17 +434,21 @@ var Parser = {
                             return true;
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando "DO"');
+                            return false;
                         }
 
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "TO" ou "DOWNTO"');
+                        return false;
                     }
 
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":="');
+                    return false;
                 }
             } else {
                 this.erro('Esperando uma variável!');
+                return false;
             }
         } else if (token.lexema == 'WITH') {
             while (true) {
@@ -450,9 +466,11 @@ var Parser = {
                         return true;
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou "DO"');
+                        return false;
                     }
                 } else {
                     this.erro('Esperando uma variável');
+                    return false;
                 }
             }
         } else if (token.lexema == 'GOTO') {
@@ -462,11 +480,22 @@ var Parser = {
                 return true;
             } else {
                 this.erro('Esperando um número');
+                return false;
             }
         } else {
             AnalisadorLexico.devolverToken(token);
             return true
         }
+    },
+
+    declara_id: function(token) {
+        if (token.declarado == true) {
+            this.erro('Identificador já declarado: "' + token.lexema + '"');
+            return false;
+        }
+
+        token.declarado = true;
+        return true;
     },
 
     parse_block: function() {
@@ -485,6 +514,7 @@ var Parser = {
                     //sai do while e vai para o case 'CONST'
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ";"');
+                    return false;
                 }
             }
         } 
@@ -492,6 +522,7 @@ var Parser = {
         if(token.lexema == 'CONST'){
             token = g(); 
             if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
+                if (!this.declara_id(token)) return false;
                 token.tipo_id = 'constante';
                 token = g();
                 while(token.lexema == '='){
@@ -500,6 +531,7 @@ var Parser = {
                     if(token.lexema == ';') {
                         token = g();
                         if (token.tipo == 'id' && !token.reservado){
+                            if (!this.declara_id(token)) return false;
                             token.tipo_id = 'constante';
                             token = g();
                             continue;
@@ -508,10 +540,12 @@ var Parser = {
                         }
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                        return false;
                     }
                 }
             } else {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                return false;
             }
         }
 
@@ -534,25 +568,31 @@ var Parser = {
                         }
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                        return false;
                     }
                 }
             } else {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                return false;
             }
         }
 
         if(token.lexema == 'VAR') {
             token = g(); 
             if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
+                if (!this.declara_id(token)) return;
                 token.tipo_id = 'variavel';
                 token = g();
                 while(true){
                     if (token.lexema == ','){
                         token = g();
                         if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
+                            if (!this.declara_id(token)) return;
+                            token.declarado = true;
                             token.tipo_id = 'variavel';
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                            return false;
                         }
 
                         token = g();
@@ -563,6 +603,7 @@ var Parser = {
                         if(token.lexema == ';'){
                             token = g();
                             if (token.tipo == 'id' && !token.reservado){
+                                if (!this.declara_id(token)) return;
                                 token.tipo_id = 'variavel';
                                 token = g();
                                 continue;
@@ -571,13 +612,16 @@ var Parser = {
                             }
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                            return false;
                         }
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":" ou ","');
+                        return false;
                     }
                 }
             } else {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                return false;
             }
         }
 
@@ -597,12 +641,15 @@ var Parser = {
                            continue; //retorna para o inicio do loop
                        } else {
                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                           return false;
                        }
                    } else {
                        this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                       return false;
                    }
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                    return false;
                 }
 
             } else if(token.lexema ==  'FUNCTION'){
@@ -622,18 +669,23 @@ var Parser = {
                                    continue; //retorna para o inicio do loop
                                } else {
                                    this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                                   return false;
                                }
                            } else {
                                this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                               return false;
                            }
                        } else {
                            this.erro('Valor inesperado: "' + token.lexema + '". Esperando tipo');
+                           return false;
                        }
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";"');
+                        return false;
                     }
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador');
+                    return false;
                 }
             } else {
                 // se passou das declaraçoes de function e procedure, sai do
@@ -652,12 +704,14 @@ var Parser = {
                     return;
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "END"');
+                    return false;
                 }
             }
         }
 
         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "LABEL", "CONST", "TYPE", "VAR"' +
             ' "PROCEDURE", "FUNCTION", ou "BEGIN"');
+        return false;
     
     },
 
@@ -691,6 +745,7 @@ var Parser = {
                         }
                     } else {
                         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou "]"');
+                        return false;
                     }
                 }
             } else {
@@ -745,6 +800,7 @@ var Parser = {
                     token = g();
                 } else {
                     this.erro('Valor insperado: "' + token.lexema + '". Esperando "," ou ";"');
+                    return false;
                 }
             }
 
@@ -797,6 +853,7 @@ var Parser = {
                                     }
                                 } else {
                                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ":"');
+                                    return false;
                                 }
                             }
 
@@ -812,6 +869,7 @@ var Parser = {
                     }
                 } else {
                     this.erro('Esperando tipo');
+                    return false;
                 }
             } else {
                 AnalisadorLexico.devolverToken(token);
@@ -898,7 +956,7 @@ var Parser = {
                 token = g();
                 if (token.tipo == 'id' && !token.reservado) {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando identificador!');
-                    token = g();
+                    return false;
                 }
 
                 if(token.lexema == ')'){
@@ -909,6 +967,7 @@ var Parser = {
                     //próximo é um identificador
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando "," ou ")"');
+                    return false;
                 }
             }
         } else {

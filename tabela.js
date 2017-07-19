@@ -11,7 +11,7 @@ var identificadoresPascal = {
     'TYPE': '', 'UNTIL': '', 'UNIT': '', 'USES': '', 'VAR': '', 'WHILE': '', 'WITH': '', 
     'WRITE': 'procedure', 'WRITELN': 'procedure', 'XOR': ''};
 
-var debug = true; // se true, mostra os tokens enquanto vai lendo
+var debug = false; // se true, mostra os tokens enquanto vai lendo
 
 var Tabela = {
 	//tabela hash de identificadores, mapeando nomeIdentificador: descricao

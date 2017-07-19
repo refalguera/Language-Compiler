@@ -11,7 +11,7 @@ var Leitor = {
     ler: function(nomeArquivo) {
         // le o arquivo para uma string, usando a o formato utf8 (para aceitar
         // caracteres especiais
-        this.texto = fs.readFileSync(nomeArquivo, 'utf8');
+        this.texto = fs.readFileSync(nomeArquivo, 'utf8').replace(/\/r\/n/, /\n/);
     },
 
     proximo: function() {

@@ -6,10 +6,10 @@ var identificadoresPascal = {
     'GOTO': '', 'IF': '', 'IMPLEMENTATION': '', 'IN': '', 'INTEGER': 'tipo',
     'INLINE': '', 'INTERFACE': '', 'LABEL': '', 'MOD': '', 'NIL': '', 'NOT': '',
     'OBJECT': '', 'OF': '', 'ON': '', 'OPERATOR': '', 'OR': '', 'PACKED': '',
-    'PROCEDURE': '', 'PROGRAM': '', 'REAL': 'tipo', 'RECORD': '', 'REPEAT': '',
-    'SET': '', 'SHL': '', 'STRING': 'tipo', 'THEN': '', 'TO': '', 'TRUE': '',
+    'PROCEDURE': '', 'PROGRAM': '', 'READ': 'procedure', 'REAL': 'tipo', 'RECORD': '', 
+    'REPEAT': '', 'SET': '', 'SHL': '', 'STRING': 'tipo', 'THEN': '', 'TO': '', 'TRUE': '',
     'TYPE': '', 'UNTIL': '', 'UNIT': '', 'USES': '', 'VAR': '', 'WHILE': '', 'WITH': '', 
-    'WRITE': 'procedure', 'WRITELN': 'procedure', 'XOR': ''};
+    'WRITE': 'procedure', 'XOR': ''};
 
 var debug = false; // se true, mostra os tokens enquanto vai lendo
 
@@ -24,14 +24,18 @@ var Tabela = {
             var token = this.itens[id];
 
             var tipo = token.tipo;
-            if (tipo == 'id' && token.tipo_id)
+            if (tipo == 'id' && token.tipo_id) {
                 tipo = token.tipo_id;
 
-            var usado = token.usado ? 'Sim' : 'Não';
+                if (tipo == 'variavel') {
+                    tipo += '(' + token.tipo_var + ')';
+                }
+            }
+
             var linha = token.linha;
             var coluna = token.coluna;
 
-            var msg = "[" + id + "] -> Tipo: " + tipo + "; Usado: " + usado +
+            var msg = "[" + id + "] -> Tipo: " + tipo + "; Valor: " + token.valor +
                 " Linha: " + linha + "; Coluna: " + coluna;
 
             console.log(msg);
@@ -48,8 +52,9 @@ var Tabela = {
             lexema: lexema,
             tipo: tipo,
             tipo_id: '',
+            tipo_var: '',
             endereco: 0,
-            valor: 0,
+            valor: '',
             reservado: false,
             declarado: false,
             usado: false,

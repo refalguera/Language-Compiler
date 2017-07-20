@@ -14,8 +14,8 @@ type
     tipo4 = Boolean;
 
 var variavel1: Integer;
-    a1, a2, a3, a4: String;
-    a5: Integer;
+    a1, a2, a3, a4: Tipo1;
+    a5: tipo1;
     a8: String;
     b, c, d: String;
 

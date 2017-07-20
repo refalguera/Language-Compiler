@@ -34,6 +34,7 @@ var Parser = {
     qtd_erros: 0,
     compilado: 'INPP\n', //String que terá o código MEPA gerado
     endereco: 0,
+    rotulo: 0,
 
     erro: function(msg) {
         // apresenta erro na tela e fecha o programa
@@ -105,10 +106,7 @@ var Parser = {
     parse_factor: function() {
         token = g();
         if (token.tipo_id == 'constante'){
-            s = token.valor;
-            if(typeof(token.valor)=='boolean')
-                s = s==true?1:0;
-            this.gera('CRCT ' + s);
+            this.gera('CRCT ' + token.valor);
             return true;
         }
         
@@ -123,7 +121,7 @@ var Parser = {
 
         if (token.tipo_id == 'variavel') {
             if (!this.verifica_declarado(token)) return false;
-            this.gera('CRVL 0,' + token.endereco);
+            this.gera('CRVL 0, ' + token.endereco);
             this.parse_infipo();
             return true;
         }
@@ -144,10 +142,6 @@ var Parser = {
             } else {
                 this.verifica_se_eh(token.lexema, '('); // gera erro, esperando "("    
             }
-            //else {
-                //TODO verificar o lambda
-               // return true;
-            //}
         }
 
         if (token.lexema == '(') {
@@ -615,16 +609,23 @@ var Parser = {
         if(token.lexema == 'VAR') {
             token = g(); 
             if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
+                var variaveis = [];
+
                 if (!this.declara_id(token)) return;
                 token.tipo_id = 'variavel';
                 this.gera('AMEM 1'); //Alocação de memória
                 token.endereco = this.endereco++;
+
+                variaveis.push(token);
+
                 token = g();
                 while(true){
                     if (token.lexema == ','){
                         token = g();
                         if (token.tipo == 'id' && !token.reservado){ //Verifica se é um identificador
                             if (!this.declara_id(token)) return;
+                            variaveis.push(token);
+
                             token.tipo_id = 'variavel';
                             this.gera('AMEM 1'); //Alocação de memória
                             token.endereco = this.endereco++;
@@ -636,12 +637,21 @@ var Parser = {
                         token = g();
                         continue;
                     } else if(token.lexema == ':'){
-                        this.parse_type();
+                        var tipo = this.parse_type();
+
+                        for (variavel in variaveis) {
+                            variaveis[variavel].tipo_var = tipo;
+                        }
+                        
+                        variaveis = [];
+
                         token = g();
                         if(token.lexema == ';'){
                             token = g();
                             if (token.tipo == 'id' && !token.reservado){
                                 if (!this.declara_id(token)) return;
+
+                                variaveis.push(token);
                                 token.tipo_id = 'variavel';
                                 this.gera('AMEM 1'); //Alocação de memória
                                 token.endereco = this.endereco++;
@@ -734,7 +744,11 @@ var Parser = {
             }
         }
 
+        this.gera('DSVS RS' + this.rotulo);
+
         if(token.lexema == 'BEGIN'){
+            this.gera('RS' + this.rotulo++ + ' : NADA');
+
             while(true){
                 this.parse_statm();
                 token = g();
@@ -752,13 +766,12 @@ var Parser = {
         this.erro('Valor inesperado: "' + token.lexema + '". Esperando "LABEL", "CONST", "TYPE", "VAR"' +
             ' "PROCEDURE", "FUNCTION", ou "BEGIN"');
         return false;
-    
     },
 
     parse_type: function() {
         var token = g();
         if (token.tipo_id == 'tipo') {
-            return true;
+            return token.lexema;
         }
 
         if (token.lexema == 'PACKED') {
@@ -1022,19 +1035,21 @@ var Parser = {
     parse_const: function() {
         var token = g();
         if (token.tipo == 'string') {
-            return true;
+            return token.lexema;
         }
         
+        var negativo = false;
         if (token.lexema == '+' || token.lexema == '-') {
+            if (token.lexema == '-') negativo = true;
             token = g(); // pula esse operador e vai ao proximo
         }
 
         if (token.tipo_id == 'constante'){
-            return token.valor;
+            return token.valor * (negativo ? -1 : 1);
         } 
 
         if (token.tipo == 'numero'){
-            return token.lexema;
+            return token.lexema * (negativo ? -1 : 1);
         }
 
         this.erro('Valor inesperado: "' + token.lexema + '". Esperando String, constante, ou ' +

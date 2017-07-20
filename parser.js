@@ -10,9 +10,13 @@ function resultados() {
 
     console.log('\n');
     console.log('Compilação terminada!');
-    console.log((Leitor.qtd_erros + Parser.qtd_erros) + " erro(s) encontrados !");
-    console.log('\n' + Parser.compilado);
-    process.exit(0);
+    qtd_erros = Leitor.qtd_erros + Parser.qtd_erros
+    console.log(qtd_erros + " erro(s) encontrados !");
+    if (qtd_erros == 0) {
+        console.log('\n' + Parser.compilado);
+        process.exit(0);
+    }
+    process.exit(-1);
 }
 
 g = function(){
@@ -90,6 +94,14 @@ var Parser = {
         }
     },
     
+    verifica_declarado: function(token) {
+        if (token.declarado == false) {
+            this.erro('Variável não definida: "' + token.lexema + '".')
+            return false;
+        }
+        return true;
+    },
+
     parse_factor: function() {
         token = g();
         if (token.tipo_id == 'constante'){
@@ -110,6 +122,7 @@ var Parser = {
             return true;
 
         if (token.tipo_id == 'variavel') {
+            if (!this.verifica_declarado(token)) return false;
             this.gera('CRVL 0,' + token.endereco);
             this.parse_infipo();
             return true;
@@ -293,6 +306,7 @@ var Parser = {
         if (token.tipo_id == 'variavel' || token.tipo_id == 'function') {
             var end = token.endereco;
             if (token.tipo_id == 'variavel') {
+                if (!this.verifica_declarado(token)) return false;
                 this.parse_infipo();
             }
             token = g();
@@ -434,6 +448,7 @@ var Parser = {
         } else if (token.lexema == 'FOR') {
             token = g();
             if (token.tipo_id == 'variavel') {
+                if (!this.verifica_declarado(token)) return false;
                 this.parse_infipo();
                 token = g();
 
@@ -473,6 +488,7 @@ var Parser = {
                 token = g();
 
                 if (token.tipo_id == 'variavel') {
+                    if (!this.verifica_declarado(token)) return false;
                     this.parse_infipo();
 
                     token = g();

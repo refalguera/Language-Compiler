@@ -20,4 +20,8 @@ var variavel1: Integer;
     b, c, d: String;
 
 begin
+    1: a1 := 3;
+    a2 := a1 + a2;
+
+    goto 1
 end.

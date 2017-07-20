@@ -35,6 +35,7 @@ var Parser = {
     compilado: 'INPP\n', //String que terá o código MEPA gerado
     endereco: 0,
     rotulo: 0,
+    rotulos: {},
 
     erro: function(msg) {
         // apresenta erro na tela e fecha o programa
@@ -289,14 +290,18 @@ var Parser = {
         var token = g();
 
         if (token.tipo == 'numero') {
+            var valor = token.lexema * 1;
             token = g();
             if (token.lexema != ':') {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando ":"');
                 return false;
             }
+
+            this.rotulos[valor] = this.rotulo;
+            this.gera('RS' + this.rotulo++ + ': NADA');
             token = g();
         }
-        
+ 
         if (token.tipo_id == 'variavel' || token.tipo_id == 'function') {
             var end = token.endereco;
             if (token.tipo_id == 'variavel') {
@@ -505,6 +510,7 @@ var Parser = {
             token = g();
 
             if (token.tipo == 'numero') {
+                this.gera('DSVS ' + this.rotulos[token.lexema * 1]);
                 return true;
             } else {
                 this.erro('Esperando um número');

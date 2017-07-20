@@ -4,7 +4,7 @@ var Tabela = require('./tabela.js');
 var fs = require('fs');
 
 
-function resultados() {
+function resultados(arquivoSaida) {
     console.log('\n\n\n');
     Tabela.mostrarTabela();
 
@@ -14,6 +14,7 @@ function resultados() {
     console.log(qtd_erros + " erro(s) encontrados !");
     if (qtd_erros == 0) {
         console.log('\n' + Parser.compilado);
+        fs.writeFileSync(arquivoSaida, Parser.compilado, 'utf8');
         process.exit(0);
     }
     process.exit(-1);
@@ -1182,6 +1183,7 @@ if (!module.parent) {
     }
 
     const nomeArquivo = args[2]; // pega o nome do arquivo enviado pelo parâmetro da linha de comando
+    const arquivoSaida = nomeArquivo.replace('.pas', '_mepa.txt');
 
     if (!fs.existsSync(nomeArquivo)) {
         erroSai('Erro: arquivo não encontrado (' + nomeArquivo + ')');
@@ -1190,5 +1192,5 @@ if (!module.parent) {
     Leitor.ler(nomeArquivo);
     Parser.parse_program();
     Parser.compilado = Parser.compilado + 'PARA';
-    resultados();
+    resultados(arquivoSaida);
 }

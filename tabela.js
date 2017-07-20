@@ -35,8 +35,14 @@ var Tabela = {
             var linha = token.linha;
             var coluna = token.coluna;
 
-            var msg = "[" + id + "] -> Tipo: " + tipo + "; Valor: " + token.valor +
-                " Linha: " + linha + "; Coluna: " + coluna;
+            if (token.valor) {
+                var msg = "[" + id + "] -> Tipo: " + tipo + "; Valor: " + token.valor +
+                    " Linha: " + linha + "; Coluna: " + coluna;
+            } else {
+                var msg = "[" + id + "] -> Tipo: " + tipo + "; " +
+                    " Linha: " + linha + "; Coluna: " + coluna;
+            }
+
 
             console.log(msg);
         }

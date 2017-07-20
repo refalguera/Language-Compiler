@@ -477,21 +477,48 @@ var Parser = {
             token = g();
             if (token.tipo_id == 'variavel') {
                 if (!this.verifica_declarado(token)) return false;
+                var end_variavel = token.endereco;
+
+                var rot = this.rotulo;
+
                 this.parse_infipo();
                 token = g();
 
                 if (token.lexema == ':=') {
                     this.parse_expr();
+                    this.gera('ARMZ 0, ' + end_variavel);
+                    inicio_loop = this.rotulo;
+                    this.gera('RS' + this.rotulo++ + ': NADA');
+                    this.gera('CRVL 0, ' + end_variavel);
 
                     token = g();
 
                     if (token.lexema == 'TO' || token.lexema == 'DOWNTO') {
+                        var modo = token.lexema;
+
                         this.parse_expr();
+                        this.gera('CMDG');
+                        this.gera('DSVF RS' + this.rotulo); // sai se falso
 
                         token = g();
 
                         if (token.lexema == 'DO') {
                             this.parse_statm();
+
+                            if (modo == 'TO') {
+                                this.gera('CRCT 1');
+                                this.gera('CRVL 0,' + end_variavel);
+                                this.gera('SOMA');
+                                this.gera('ARMZ 0,' + end_variavel);
+                            } else {
+                                this.gera('CRVL 0,' + end_variavel);
+                                this.gera('CRCT 1');
+                                this.gera('SUBT');
+                                this.gera('ARMZ 0,' + end_variavel);
+                            }
+
+                            this.gera('DSVS RS' + inicio_loop);
+                            this.gera('RS' + this.rotulo++ + ': NADA');
                             return true;
                         } else {
                             this.erro('Valor inesperado: "' + token.lexema + '". Esperando "DO"');

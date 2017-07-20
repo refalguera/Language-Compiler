@@ -318,6 +318,7 @@ var Parser = {
                 return false;
             }
         } else if (token.tipo_id == 'procedure') {
+            var nome_proc = token.lexema;
             token = g();
 
             if (token.lexema == '(' ) {
@@ -326,6 +327,10 @@ var Parser = {
                     if (token.tipo_id != 'procedure') {
                         AnalisadorLexico.devolverToken(token);
                         this.parse_expr();
+                    }
+
+                    if (nome_proc == 'WRITE') {
+                        this.gera('IMPR');
                     }
 
                     token = g();
@@ -360,19 +365,24 @@ var Parser = {
         } else if (token.lexema == 'IF') {
             this.parse_expr();
             token = g();
+            var rot = this.rotulo++;
+            this.gera('DSVF RS' + rot); // vai para ELSE ou fim do bloco
 
             if (token.lexema == 'THEN') {
                 this.parse_statm();
 
                 token = g();
                 if (token.lexema != 'ELSE') {
+                    this.gera('RS' + rot + ': NADA'); // fim do IF, sem ELSE
                     AnalisadorLexico.devolverToken(token);
-                    // TODO verificar lambda
                     return true;
                 }
 
+                // com ELSE
+                this.gera('DSVS RS' + this.rotulo);
+                this.gera('RS' + rot + ': NADA'); // fim do IF, com ELSE. Inicio do ELSE
                 this.parse_statm();
-                // TODO verificar lambda
+                this.gera('RS' + this.rotulo++ + ': NADA'); // fim do IF
                 return true;
             } else {
                 this.erro('Valor inesperado: "' + token.lexema + '". Esperando "then"');

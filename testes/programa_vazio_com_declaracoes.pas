@@ -23,5 +23,8 @@ begin
     1: a1 := 3;
     a2 := a1 + a2;
 
-    goto 1
+    if a1 = 3 then
+        write(a2)
+    else
+        write(a1);
 end.

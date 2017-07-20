@@ -456,6 +456,8 @@ var Parser = {
                 this.verifica_se_eh(token.lexema, 'DO');
             }
         } else if (token.lexema == 'REPEAT') {
+            var inicio_loop = this.rotulo;
+            this.gera('RS' + this.rotulo++ + ': NADA');
             while (true) {
                 this.parse_statm();
                 token = g();
@@ -464,6 +466,7 @@ var Parser = {
                     continue;
                 else if (token.lexema == 'UNTIL') {
                     this.parse_expr();
+                    this.gera('DSVF RS' + inicio_loop);
                     return true;
                 } else {
                     this.erro('Valor inesperado: "' + token.lexema + '". Esperando ";" ou "UNTIL"');

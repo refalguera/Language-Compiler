@@ -324,12 +324,21 @@ var Parser = {
             if (token.lexema == '(' ) {
                 while (true) {
                     token = g();
-                    if (token.tipo_id != 'procedure') {
-                        AnalisadorLexico.devolverToken(token);
-                        this.parse_expr();
-                    }
+                    if (nome_proc == 'READ') {
+                        this.gera('LEIT');
+                        this.gera('ARMZ 0, ' + token.endereco);
 
+                        if (token.tipo_id != 'variavel') {
+                            this.erro('Variável esperada.');
+                            return false;
+                        }
+                    }
                     if (nome_proc == 'WRITE') {
+                        if (token.tipo_id != 'procedure') {
+                            AnalisadorLexico.devolverToken(token);
+                            this.parse_expr();
+                        }
+
                         this.gera('IMPR');
                     }
 

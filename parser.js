@@ -430,10 +430,17 @@ var Parser = {
                 this.verifica_se_eh(token.lexema, 'OF');
             }
         } else if (token.lexema == 'WHILE') {
+            var inicio_loop = this.rotulo;
+            this.gera('RS' + this.rotulo++ + ': NADA');
+
             this.parse_expr();
+
+            this.gera('DSVF RS' + this.rotulo); // vai ao fim se falso
             token = g();
             if (token.lexema == 'DO') {
                 this.parse_statm();
+                this.gera('DSVS RS' + inicio_loop);
+                this.gera('RS ' + this.rotulo++ + ': NADA');
                 return true;
             } else {
                 // gera erro, esperando do

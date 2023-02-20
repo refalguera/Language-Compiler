@@ -1,8 +1,9 @@
-# Compilador
-Trabalho Compilador - 2017
+# Compiler
 
-A execução do programa em Windows deve ser feito por meio do prompt de comandos.
+Working with the Compiler - 2017
 
-Acessando a pasta dist o comando a ser executado no prompt é: "parser testes\<NOME_TESTE>.pas"
+Running the program in Windows must be done via the command prompt.
 
-Onde <NOME_TESTE> é o nome de um arquivo a ser compilado, alguns exemplos estão na pasta testes.
+Accessing the dist folder the command to run at the prompt is: "parser tests\<TEST_NAME>.pas"
+
+Where <TEST_Name> is the name of a file to be compiled, some examples are in the tests folder.
